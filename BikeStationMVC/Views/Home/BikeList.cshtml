@@ -1,0 +1,74 @@
+﻿<div class="row">
+    <form>
+        <input id="search" type="search" name="search" placeholder="Search for a user" data-bind="value: query, valueUpdate: 'keyup'" autocomplete="off" />
+    </form>
+</div>
+
+<div class="row">
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>station_id</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: BikeList">
+            <tr>
+                <td data-bind="text: name"></td>
+                <td data-bind="text: station_id"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    function BikeListViewModel() {
+        var self = this;
+        self.BikeList = ko.observableArray([]);
+        var bikes;
+        var baseUrl = 'https://localhost:7182/';
+
+        self.GetBikeList = function () {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: baseUrl + 'api/bike/bikeList',
+                success: function (data) {
+                    bikes = data.bikes;
+                    
+                    self.BikeList($.map(bikes, function (bike) {
+                        return new BikeDetailViewModel(bike);
+                    }));
+                }
+            });
+        }
+        self.GetBikeList();
+
+        self.query = ko.observable('');
+        self.search = ko.computed({
+            read: function () {
+                return self.BikeList;
+            },
+            write: function (value) {
+                self.BikeList.removeAll();
+                for (var bike in bikes) {
+                    if (bikes[bike].name.toLowerCase().indexOf(value.toLowerCase()) >= 0) {
+                        self.BikeList.push(bikes[bike]);
+                    }
+                }
+                return self.BikeList;
+            },
+            owner: self
+        });
+    }
+
+    function BikeDetailViewModel(data) {
+        var self = this;
+        self.name = ko.observable(data.name);
+        self.station_id = ko.observable(data.station_id);
+    }
+
+    var bikeList = new BikeListViewModel();
+    bikeList.query.subscribe(bikeList.search);
+    ko.applyBindings(bikeList);
+</script>

@@ -1,0 +1,32 @@
+﻿<figure class="highcharts-figure">
+    <div id="container"></div>
+</figure>
+
+<script type="text/javascript">
+    var baseUrl = 'https://localhost:7182/';
+
+    $.ajax({
+        type: "GET",
+        dataType: "json",
+        url: baseUrl + 'api/station/stationStatus',
+        success: function (data) {
+            Highcharts.chart('container', {
+                chart: {
+                    type: 'variablepie'
+                },
+                title: {
+                    text: '',
+                    align: 'left'
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.y}</b>'
+                },
+                series: [{
+                    name: 'Brands',
+                    colorByPoint: true,
+                    data: data
+                }]
+            });
+        }
+    });
+</script>

@@ -1,0 +1,79 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container">
+    <form data-bind="submit: saveBike">
+        <div class="row">
+            <p>
+                Bike Name: <input type="text" data-bind="value: name" required/>
+            </p>
+        </div>
+        <div class="row">
+            <p>
+                Station: <select data-bind="options: StationList,
+                         optionsValue: 'station_id',
+                         value: selectedStation,
+                         optionsText: 'name'">
+                </select>
+            </p>
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+</div>
+
+<script type="text/javascript">
+    function getSaveBikeViewModel() {
+        var self = this;
+        var baseUrl = 'https://localhost:7182/';
+        var stations;
+        self.StationList = ko.observableArray([]);
+        self.selectedStation = ko.observable();
+        self.name = ko.observable('');
+
+        self.stations = function () {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: baseUrl + 'api/station/stationList',
+                success: function (data) {
+                    stations = data.stations;
+                    self.StationList($.map(stations, function (station) {
+                        return new StationDetailViewModel(station);
+                    }));
+                }
+            });
+        }
+
+        self.stations();
+        var bikeData = {
+            bike_id: '',
+            name: self.name,
+            station_id: self.selectedStation,
+            lon: 0,
+            lat: 0,
+            is_reserved: 0,
+            is_disabled: 0
+        }
+
+        self.saveBike = function () {
+            $.ajax({
+                type: "POST",
+                contentType: 'application/json; charset=utf-8',
+                data: ko.toJSON(bikeData),
+                url: baseUrl + 'api/bike/saveBike',
+                success: function (data) {
+                    
+                }
+            });
+        }
+    }
+
+    function StationDetailViewModel(data) {
+        var self = this;
+        self.name = ko.observable(data.name);
+        self.station_id = ko.observable(data.station_id);
+    }
+
+    ko.applyBindings(new getSaveBikeViewModel());
+</script>
